@@ -129,14 +129,13 @@ class Person
         $this->users = new \Doctrine\Common\Collections\ArrayCollection();
         $this->aliases = new \Doctrine\Common\Collections\ArrayCollection();
 
-        $this->map_to = 0;
         $this->no_robots = 0;
     }
 
     /**
      * Set map_to
      *
-     * @param int $mapedTo
+     * @param int $mapTo
      *
      * @return Person
      */

@@ -51,7 +51,7 @@ class PersonController extends AbstractRestController
         if ($person->getMappedTo()) {
             return $this->redirectToRoute(
                 'get_person',
-                array('identifier' => $person->getMappedTo()->getSlug()),
+                ['identifier' => $person->getMappedTo()->getSlug(), '_format' => $request->getRequestFormat()],
                 301
             );
         }

@@ -37,6 +37,8 @@ class AccessControlEntryFixtures extends Fixture implements DependentFixtureInte
             $manager->persist($e);
         }
 
+        //TODO Make a random society own shows.
+
         $manager->flush();
     }
 

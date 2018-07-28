@@ -162,19 +162,6 @@ class Show implements OwnableInterface
     private $other_venue = '';
 
     /**
-     * The show's society, if it is not linked to a venue resource
-     *
-     * @var string
-     *
-     * @ORM\Column(name="society", type="string", length=255, nullable=true)
-     * @Gedmo\Versioned
-     * @Serializer\Expose()
-     * @Serializer\Type("string")
-     * @Serializer\XmlElement(cdata=false)
-     */
-    private $other_society = '';
-
-    /**
      * @var bool
      *
      * @ORM\Column(name="techsend", type="boolean", nullable=false)
@@ -195,16 +182,6 @@ class Show implements OwnableInterface
      * @Gedmo\Versioned
      */
     private $audextra;
-
-    /**
-     * @var Society
-     *
-     * @ORM\ManyToOne(targetEntity="Society", inversedBy="shows")
-     * @ORM\JoinColumn(name="socid", referencedColumnName="id", onDelete="SET NULL")
-     * @Gedmo\Versioned
-     * @Api\Link(embed=true, route="get_society", params={"identifier": "object.getSociety().getSlug()"})
-     */
-    private $society;
 
     /**
      * @var Venue
@@ -478,34 +455,6 @@ class Show implements OwnableInterface
         }
     }
 
-    public function getOtherSociety()
-    {
-        return $this->other_society;
-    }
-
-    /**
-     * Set other_society
-     *
-     * @param string $societyName
-     *
-     * @return Show
-     */
-    public function setOtherSociety($societyName)
-    {
-        $this->other_society = $societyName;
-
-        return $this;
-    }
-
-    public function getSocietyName()
-    {
-        if ($this->other_society) {
-            return $this->other_society;
-        } elseif ($this->society) {
-            return $this->society->getName();
-        }
-    }
-
     /**
      * Set tech_send
      *
@@ -737,30 +686,6 @@ class Show implements OwnableInterface
         ;
 
         return $this->getRoles()->matching($criteria);
-    }
-
-    /**
-     * Set society
-     *
-     * @param \Acts\CamdramBundle\Entity\Society $society
-     *
-     * @return Show
-     */
-    public function setSociety(\Acts\CamdramBundle\Entity\Society $society = null)
-    {
-        $this->society = $society;
-
-        return $this;
-    }
-
-    /**
-     * Get society
-     *
-     * @return \Acts\CamdramBundle\Entity\Society
-     */
-    public function getSociety()
-    {
-        return $this->society;
     }
 
     /**

@@ -71,10 +71,12 @@ class ShowController extends AbstractRestController
 
         $can_contact = $this->getDoctrine()->getRepository('ActsCamdramSecurityBundle:User')
             ->getContactableEntityOwners($show) > 0;
+        $societyACEs = $this->getDoctrine()->getRepository('ActsCamdramSecurityBundle:SocietyAccessCE')
+            ->findAllLinkedSocs($show);
         
         $view = $this->view($show, 200)
             ->setTemplate('show/show.html.twig')
-            ->setTemplateData(['show' => $show, 'can_contact' => $can_contact]);
+            ->setTemplateData(['show' => $show, 'can_contact' => $can_contact, 'societyACEs' => $societyACEs]);
         ;
         return $view;
     }
@@ -123,12 +125,14 @@ class ShowController extends AbstractRestController
     public function adminPanelAction(Show $show)
     {
         $em = $this->getDoctrine()->getManager();
-        $admins = $this->get('camdram.security.acl.provider')->getOwners($show);
+        $acl = $this->get('camdram.security.acl.provider');
+        $admins = $acl->getOwners($show);
         $requested_admins = $em->getRepository('ActsCamdramSecurityBundle:User')->getRequestedShowAdmins($show);
         $pending_admins = $em->getRepository('ActsCamdramSecurityBundle:PendingAccess')->findByResource($show);
-        if ($show->getSociety()) {
-            $admins[] = $show->getSociety();
-        }
+        $societies = $acl->getOwningSocs($show);
+
+        $admins = array_merge($admins, $societies);
+
         if ($show->getVenue()) {
             $admins[] = $show->getVenue();
         }

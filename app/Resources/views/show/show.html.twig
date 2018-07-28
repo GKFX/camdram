@@ -51,13 +51,26 @@
         </li>{%- endif -%}
     </ul>
 
-    {%- if show.society -%}
-        <p class="show-society" itemprop="organizer" itemscope="" itemtype="http://schema.org/TheaterGroup">
-                <a href="{{ path('get_society', {identifier: show.society.slug}) }}" itemprop="url"><span itemprop="name">{{ show.society.name }}</span></a> presents...
-        </p>
-    {% elseif show.societyname is not empty %}
-        <p class="show-society" itemprop="organizer" itemscope="" itemtype="http://schema.org/TheaterGroup">
-            <span itemprop="name" content="{{ show.societyname }}">{{ show.societyname }}</span> presents...
+    {% if societyACEs %}
+        <p class="show-society">
+        {% for societyEntry in societyACEs %}
+            <span itemprop="organizer" itemscope="" itemtype="http://schema.org/TheaterGroup">
+            {%- if societyEntry.society -%}
+                <a href="{{ path('get_society', {identifier: societyEntry.society.slug}) }}" itemprop="url"><span itemprop="name">{{ societyEntry.society.name }}</span></a>
+            {%- else -%}
+                <span itemprop="name" content="{{ societyEntry.societyName }}">{{ societyEntry.societyName }}</span>
+            {%- endif -%}
+            </span>
+            {%- if loop.revindex > 2 -%}
+                ,
+            {%- elseif loop.revindex == 2 %}
+                and
+            {%- elseif loop.length == 1 %}
+                presents...
+            {%- else %}
+                present...
+            {%- endif -%}
+        {% endfor %}
         </p>
     {% endif %}
 

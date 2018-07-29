@@ -90,14 +90,24 @@ class AuditionRepository extends EntityRepository
     public function findUpcomingBySociety(Society $society, $limit, \DateTime $now)
     {
         return $this->getUpcomingQuery($limit, $now)
-            ->leftJoin('s.society', 'y')->andWhere('y = :society')->setParameter('society', $society)
+            ->andWhere('s.id IN (
+                SELECT ace.entityId
+                FROM ActsCamdramSecurityBundle:SocietyAccessCE ace
+                WHERE ace.type = \'show\' AND ace.societyId = :societyid
+                )')
+            ->setParameter('societyid', $society->getId())
             ->getQuery()->getResult();
     }
 
     public function findUpcomingNonScheduledBySociety(Society $society, $limit, \DateTime $now)
     {
         return $this->getUpcomingNonScheduledQuery($limit, $now)
-            ->leftJoin('s.society', 'y')->andWhere('y = :society')->setParameter('society', $society)
+            ->andWhere('s.id IN (
+                SELECT ace.entityId
+                FROM ActsCamdramSecurityBundle:SocietyAccessCE ace
+                WHERE ace.type = \'show\' AND ace.societyId = :societyid
+                )')
+            ->setParameter('societyid', $society->getId())
             ->getQuery()->getResult();
     }
 

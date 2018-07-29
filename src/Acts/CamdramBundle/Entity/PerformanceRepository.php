@@ -95,7 +95,11 @@ class PerformanceRepository extends EntityRepository
             ->addSelect('s')
             ->addSelect('v')
             ->where('s.authorised = true')
-            ->andWhere('s.society = :society');
+            ->andWhere('s.id IN (
+                SELECT ace.entityId
+                FROM ActsCamdramSecurityBundle:SocietyAccessCE ace
+                WHERE ace.type = \'show\' AND ace.society = :society
+                )');
 
         if ($from) {
             $query = $query->andWhere('p.start_date > :from')->setParameter('from', $from);

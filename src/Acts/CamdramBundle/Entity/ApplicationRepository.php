@@ -64,12 +64,15 @@ class ApplicationRepository extends EntityRepository
 
     public function findLatestBySociety(Society $society, $limit, \DateTime $now)
     {
-        $qb = $this->getLatestQuery($limit, $now);
-        $qb->andWhere(
-                    $qb->expr()->orX('s.society = :society', 'a.society = :society')
-            )->setParameter('society', $society);
-
-        return $qb->getQuery()->getResult();
+        // a: application. s: show.
+        return $this->getLatestQuery($limit, $now)
+            ->andWhere('a.society = :society OR s.id IN (
+                SELECT ace.entityId
+                FROM ActsCamdramSecurityBundle:SocietyAccessCE ace
+                WHERE ace.type = \'show\' AND ace.society = :society
+                )')
+            ->setParameter('society', $society)
+            ->getQuery()->getResult();
     }
 
     public function findLatestByVenue(Venue $venue, $limit, \DateTime $now)

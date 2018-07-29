@@ -50,7 +50,12 @@ class TechieAdvertRepository extends EntityRepository
     public function findLatestBySociety(Society $society, $limit, \DateTime $now)
     {
         return $this->getLatestQuery($limit, $now)
-            ->leftJoin('s.society', 'y')->andWhere('y = :society')->setParameter('society', $society)
+            ->andWhere('s.id IN (
+                SELECT ace.entityId
+                FROM ActsCamdramSecurityBundle:SocietyAccessCE ace
+                WHERE ace.type = \'show\' AND ace.society = :society
+                )')
+            ->setParameter('society', $society)
             ->getQuery()->getResult();
     }
 

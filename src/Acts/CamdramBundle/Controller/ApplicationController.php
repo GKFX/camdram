@@ -24,11 +24,14 @@ class ApplicationController extends FOSRestController
     {
         $applications = array_reverse($this->getDoctrine()->getRepository('ActsCamdramBundle:Application')
             ->findLatest(-1, Time::now()));
+        $societyACERepo = $this->getDoctrine()->getRepository('ActsCamdramSecurityBundle:SocietyAccessCE');
+        foreach ($applications as &$application) {
+            $application = ['a' => $application, 'socs' => $societyACERepo->findAllLinkedSocs($application->getShow())];
+        }
         
         $view = $this->view($applications, 200)
-                  ->setTemplate('application/index.'.$request->getRequestFormat().'.twig')
-                   ->setTemplateVar('applications')
-               ;
+            ->setTemplate('application/index.'.$request->getRequestFormat().'.twig')
+            ->setTemplateVar('applications');
         return $view;
     }
 

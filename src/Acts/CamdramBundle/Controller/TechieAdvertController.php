@@ -40,11 +40,13 @@ class TechieAdvertController extends FOSRestController
     {
         $techieAdverts = $this->getDoctrine()->getRepository('ActsCamdramBundle:TechieAdvert')
             ->findNotExpiredOrderedByDateName(Time::now());
+        $societyACERepo = $this->getDoctrine()->getRepository('ActsCamdramSecurityBundle:SocietyAccessCE');
         
         $week_manager = $this->get('acts.camdram.week_manager');
         $weeks = array();
-        foreach ($techieAdverts as $advert) {
+        foreach ($techieAdverts as &$advert) {
             $weeks[$advert->getShow()->getId()] = $week_manager->getPerformancesWeeksAsString($advert->getShow()->getPerformances());
+            $advert = ['a' => $advert, 'socs' => $societyACERepo->findAllLinkedSocs($advert->getShow())];
         }
         
         $view = $this->view($techieAdverts)

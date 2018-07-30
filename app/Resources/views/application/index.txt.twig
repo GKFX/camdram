@@ -1,4 +1,5 @@
-{% for a in applications %}
+{% for item in applications -%}
+{%- set a = item.a %}
     {{- loop.index }}. {{ a.show ? a.show.name : a.society.name }}
 {%- if a.show and a.show.weeks %}
  ({{ a.show.weeks }})
@@ -7,11 +8,12 @@
 {% endif %}
 {% endfor %}
 
-{% for a in applications %}
+{% for item in applications -%}
+{%- set a = item.a %}
 ***************************************************
 {% if a.show %}
         {%- include 'show/advert_header.txt.twig' with
-            {'show': a.show} %}
+            {'show': a.show, 'societyACEs': item.socs} %}
 {% elseif a.society %}
     {{- a.society.name }}
 {% endif %}

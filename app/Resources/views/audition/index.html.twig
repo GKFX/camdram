@@ -17,7 +17,8 @@
 {% block vacancies_body %}
     {% spaceless %}
     {% set currentName = null %}
-    {% for a in auditions %}
+    {% for item in auditions %}
+	{% set a = item.a %}{# Unpack the audition object #}
         {% if a.show %}
             {% if currentName != a.show.name %}
                 {% if currentName is not empty %}
@@ -28,7 +29,7 @@
                 <hr>
                 <div id="{{ a.show.slug }}">
                     {% include 'show/advert_header.html.twig' with
-                        {'show': a.show} %}
+                        {'show': a.show, 'societyACEs': item.socs} %}
                     <p>{{ a.show.audextra | camdram_markdown }}</p>
                     <ul>
             {% endif %}

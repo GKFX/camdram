@@ -18,11 +18,14 @@ class AuditionController extends FOSRestController
     public function cgetAction(Request $request)
     {
         $auditions = $this->getDoctrine()->getRepository('ActsCamdramBundle:Audition')->findCurrentOrderedByNameDate(Time::now());
+        $societyACERepo = $this->getDoctrine()->getRepository('ActsCamdramSecurityBundle:SocietyAccessCE');
+        foreach ($auditions as &$audition) {
+            $audition = ['a' => $audition, 'socs' => $societyACERepo->findAllLinkedSocs($audition->getShow())];
+        }
 
         $view = $this->view($auditions, 200)
-                  ->setTemplate('audition/index.'.$request->getRequestFormat().'.twig')
-                   ->setTemplateVar('auditions')
-               ;
+            ->setTemplate('audition/index.'.$request->getRequestFormat().'.twig')
+            ->setTemplateVar('auditions');
 
         return $view;
     }

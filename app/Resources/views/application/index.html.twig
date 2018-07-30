@@ -15,7 +15,8 @@
 {% block vacancies_body %}
     {% spaceless %}
     {% set current = null %}
-    {% for a in applications %}
+    {% for item in applications %}
+	{% set a = item.a %}
         {% set entity = a.society ? a.society : a.show %}
         {% if entity.name != current%}
             {% if current != null %}
@@ -27,7 +28,7 @@
         <hr>
         <div id="{{ a.show ? a.show.slug : a.society.slug }}">
         {% if a.show %}
-            {% include 'show/advert_header.html.twig' with {'show': a.show} %}
+            {% include 'show/advert_header.html.twig' with {'show': a.show, 'societyACEs': item.socs} %}
         {% else %}
             <h4><a href="{{ path('get_society', {identifier: entity.slug}) }}">{{ current }}</a></h4>
         {% endif %}

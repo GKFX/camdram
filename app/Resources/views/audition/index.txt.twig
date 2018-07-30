@@ -1,11 +1,12 @@
 {% set currentName = null %}
 {% set showIndex = 0 %}
-{% for a in auditions %}
+{% for item in auditions %}
+{% set a = item.a %}
 {% if currentName != a.show.name %}
     {%- if currentName is not empty -%}
-        {{- auditions[loop.index0 - 1].show.name }}
-{%- if auditions[loop.index0 - 1].show.weeks %}
- ({{ auditions[loop.index0 - 1].show.weeks }})
+        {{- auditions[loop.index0 - 1].a.show.name }}
+{%- if auditions[loop.index0 - 1].a.show.weeks %}
+ ({{ auditions[loop.index0 - 1].a.show.weeks }})
 {% endif %}
 {% endif %}
 {%- set currentName = a.show.name %}
@@ -13,17 +14,18 @@
 {% endfor %}
 
 {% set currentName = null %}
-{% for a in auditions %}
+{% for item in auditions %}
+{% set a = item.a %}
 {% if a.show %}
 {% if currentName != a.show.name %}
     {%- if currentName is not empty %}
-        {{ auditions[loop.index0 - 1].show.audextra }}
+        {{ auditions[loop.index0 - 1].a.show.audextra }}
     {% endif %}
     {%- set currentName = a.show.name %}
 
 ***************************************************
 {% include 'show/advert_header.txt.twig' with
-    {'show': a.show} %}
+    {'show': a.show, 'societyACEs': item.socs} %}
 
 Is holding auditions:
 {% endif %}

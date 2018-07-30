@@ -15,11 +15,12 @@
 {% endblock %}
 
 {% block vacancies_body %}
-    {% for a in techieadverts %}
+    {% for item in techieadverts %}
+	{% set a = item.a %}
         <hr>
         <div id="{{ a.show.slug }}">
             {%- include 'show/advert_header.html.twig' with
-                {'show': a.show} -%}
+                {'show': a.show, 'societyACEs': item.socs} -%}
         <p><strong>Looking for:</strong>
         <ul>
         {% for p in a.positions|split("\n") %}

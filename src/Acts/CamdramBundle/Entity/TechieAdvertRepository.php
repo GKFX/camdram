@@ -21,7 +21,7 @@ class TechieAdvertRepository extends EntityRepository
         $query = $qb->leftJoin('a.show', 's')
             ->where($qb->expr()->orX('a.expiry > :expiry', $qb->expr()->andX('a.expiry = :expiry', 'a.deadlineTime >= :time')))
             ->andWhere('s.authorised = true')
-            ->orderBy('a.expiry, s.name, s.society')
+            ->orderBy('a.expiry, s.name')
             ->setParameter('expiry', $date, \Doctrine\DBAL\Types\Type::DATE)
             ->setParameter('time', $date, \Doctrine\DBAL\Types\Type::TIME)
             ->getQuery();

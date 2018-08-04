@@ -27,16 +27,36 @@ class SocietyAccessCERepository extends EntityRepository
     }
 
     /**
-     * Find an ACEs that has not been revoked.
+     * Find an ACE for a registered society, which has not been revoked.
      */
-    public function findLiveAce(Society $soc, OwnableInterface $entity)
+    public function findLiveAce($socId, OwnableInterface $entity)
     {
         $qb = $this->createQueryBuilder('e');
-        $query = $qb->where('e.society = :society')
+        $query = $qb->where('e.societyId = :societyId')
                 ->andWhere('e.entityId = :entityId')
                 ->andWhere('e.type = :type')
                 ->andWhere('e.revokedBy IS NULL')
-                ->setParameter('society', $soc)
+                ->setParameter('societyId', $socId)
+                ->setParameter('entityId', $entity->getId())
+                ->setParameter('type', $entity->getAceType())
+        ;
+
+        return $query->getQuery()->getOneOrNullResult();
+    }
+
+    /**
+     * Find an ACE for a given show and society name, not revoked or pointing
+     * at a registered society.
+     */
+    public function findLiveNameAce($socName, OwnableInterface $entity)
+    {
+        $qb = $this->createQueryBuilder('e');
+        $query = $qb->where('e.society IS NULL')
+                ->andWhere('e.societyName = :socName')
+                ->andWhere('e.entityId = :entityId')
+                ->andWhere('e.type = :type')
+                ->andWhere('e.revokedBy IS NULL')
+                ->setParameter('socName', $socName)
                 ->setParameter('entityId', $entity->getId())
                 ->setParameter('type', $entity->getAceType())
         ;
@@ -52,7 +72,7 @@ class SocietyAccessCERepository extends EntityRepository
      */
     public function findOwningSocs(OwnableInterface $entity) {
         $qb = $this->createQueryBuilder('e');
-        $query = $qb->select('e.societyId') // TODO make distinct. Also get the actual socs, etc.
+        $query = $qb->select('e.societyId')
                 ->where('e.entityId = :entityId')
                 ->andWhere('e.type = :type')
                 ->andWhere('e.revokedBy IS NULL')
@@ -61,7 +81,6 @@ class SocietyAccessCERepository extends EntityRepository
                 ->setParameter('type', $entity->getAceType())
         ;
         $result = $query->getQuery()->getResult();
-        error_log(json_encode($result));
         $socs_repo = $this->getEntityManager()->getRepository('ActsCamdramBundle:Society');
         foreach ($result as &$soc) { // TODO put this all in DQL
             $soc = $socs_repo->findOneById($soc['societyId']);
@@ -72,16 +91,17 @@ class SocietyAccessCERepository extends EntityRepository
 
     /**
      * Find all societies that are named for an entity.
-     * This *does* include unregistered societies.
+     * This *does* include unregistered societies; ordered by display_order.
      *
      * @return an array of SocietyAccessCE objects.
      */
     public function findAllLinkedSocs(OwnableInterface $entity) {
         $qb = $this->createQueryBuilder('e');
-        $query = $qb->select('e') // TODO make distinct. Also get the actual socs, etc.
+        $query = $qb->select('e')
                 ->where('e.entityId = :entityId')
                 ->andWhere('e.type = :type')
                 ->andWhere('e.revokedBy IS NULL')
+                ->orderBy('e.display_order', 'ASC')
                 ->setParameter('entityId', $entity->getId())
                 ->setParameter('type', $entity->getAceType())
         ;

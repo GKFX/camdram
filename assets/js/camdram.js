@@ -254,7 +254,7 @@ import Bloodhound from 'typeahead.js'
                 $self.append($row);
                 fixHtml($row);
                 update_links();
-                options.initialiseRow.apply($row);
+                options.initialiseRow.call(null, null, $row);
                 index++;
             })
 

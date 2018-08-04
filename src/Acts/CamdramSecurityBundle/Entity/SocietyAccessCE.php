@@ -100,6 +100,14 @@ class SocietyAccessCE
     private $revokedAt;
 
     /**
+     * @var int
+     * The order to display this society in on screen
+     *
+     * @ORM\Column(name="display_order", type="integer", nullable=false)
+     */
+    private $display_order;
+
+    /**
      * Get id
      *
      * @return int
@@ -131,30 +139,6 @@ class SocietyAccessCE
     public function getCreatedAt()
     {
         return $this->createdAt;
-    }
-
-    /**
-     * Set granted_at
-     *
-     * @param \DateTime $grantedAt
-     *
-     * @return SocietyAccessCE
-     */
-    public function setGrantedAt($grantedAt)
-    {
-        $this->grantedAt = $grantedAt;
-
-        return $this;
-    }
-
-    /**
-     * Get granted_at
-     *
-     * @return \DateTime
-     */
-    public function getGrantedAt()
-    {
-        return $this->grantedAt;
     }
 
     /**
@@ -347,5 +331,29 @@ class SocietyAccessCE
     public function getEntityId()
     {
         return $this->entityId;
+    }
+
+    /**
+     * Set display_order
+     *
+     * @param int $display_order
+     *
+     * @return SocietyAccessCE
+     */
+    public function setDisplayOrder($display_order)
+    {
+        $this->display_order = $display_order;
+
+        return $this;
+    }
+
+    /**
+     * Get display_order
+     *
+     * @return int 
+     */
+    public function getDisplayOrder()
+    {
+        return $this->display_order;
     }
 }

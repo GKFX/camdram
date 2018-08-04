@@ -7,6 +7,7 @@ use Acts\CamdramBundle\Entity\Show;
 use Acts\CamdramBundle\Entity\Performance;
 use Acts\CamdramBundle\Form\Type\ShowType;
 use Acts\CamdramSecurityBundle\Entity\PendingAccess;
+use Acts\CamdramSecurityBundle\Entity\SocietyAccessCE;
 use FOS\RestBundle\Controller\Annotations as Rest;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -102,6 +103,95 @@ class ShowController extends AbstractRestController
     public function postAction(Request $request)
     {
         return parent::postAction($request);
+    }
+
+    /**
+     * Called by AbstractRestController before form goes to user.
+     */
+    public function modifyEditForm($form, $identifier) {
+        // List of societies is public knowledge, no ACL checks here.
+        $em = $this->getDoctrine()->getManager();
+        $show = $this->getEntity($identifier);
+        $socs = $em->getRepository('ActsCamdramSecurityBundle:SocietyAccessCE')->findAllLinkedSocs($show);
+        foreach ($socs as &$soc) {
+            $soc = $soc->getSociety() ? $soc->getSociety()->getName() : $soc->getSocietyName();
+        }
+        $form->get('societies')->setData($socs);
+    }
+
+    /**
+     * Called by AbstractRestController after form sent by user.
+     */
+    public function afterEditFormSubmitted($form, $identifier) {
+        $em = $this->getDoctrine()->getManager();
+        $show = $this->getEntity($identifier);
+
+        $socRepo    = $em->getRepository('ActsCamdramBundle:Society');
+        $socACERepo = $em->getRepository('ActsCamdramSecurityBundle:SocietyAccessCE');
+        $newSocs = [];   // Array of [String, Society]
+        $oldSocs = $socACERepo->findAllLinkedSocs($show);   // ACE array
+        foreach ($form->get('societies')->getData() as $newSocName) {
+            $newSocs[] = [$newSocName, $socRepo->findOneByName($newSocName)];
+        }
+
+        // Let's consider registered societies first.
+        $oldRegisteredSocs = array_filter(array_map(function($ace) { return $ace->getSociety(); }, $oldSocs));
+        $newRegisteredSocs = array_filter(array_map(function( $x ) { return $x[1]; }, $newSocs));
+        $addedSocs = array_udiff($newRegisteredSocs, $oldRegisteredSocs, // array_udiff ignores array order.
+            function($a, $b) { return $a->getId() - $b->getId(); } );
+        $lostSocs  = array_udiff($oldRegisteredSocs, $newRegisteredSocs,
+            function($a, $b) { return $a->getId() - $b->getId(); } );
+        if ($lostSocs || $addedSocs) {
+            foreach ($lostSocs as $lostSoc) {
+                $ace = $socACERepo->findLiveAce($lostSoc->getId(), $show);
+                $ace->setRevokedBy($this->getUser());
+                $ace->setRevokedAt(new \DateTime());
+            }
+            foreach ($addedSocs as $addedSoc) {
+                $ace = new SocietyAccessCE();
+                $ace->setSociety($addedSoc);
+                $ace->setType('show');
+                $ace->setEntityId($show->getId());
+                $ace->setGrantedBy($this->getUser());
+                $ace->setCreatedAt(new \DateTime());
+                $ace->setDisplayOrder(-999);
+                $em->persist($ace);
+            }
+        }
+
+        // Now unregistered societies.
+        $oldUnregisteredSocs = array_filter(array_map(function($ace) {
+                return $ace->getSociety() ? NULL : $ace->getSocietyName();
+            }, $oldSocs));
+        $newUnregisteredSocs = array_map(function($x) { return $x[0]; },
+            array_filter($newSocs, function($x) { return $x[1] === NULL; }));
+        $addedNames   = array_diff($newUnregisteredSocs, $oldUnregisteredSocs);
+        $removedNames = array_diff($oldUnregisteredSocs, $newUnregisteredSocs);
+        foreach ($addedNames as $addedName) {
+            $ace = new SocietyAccessCE();
+            $ace->setSocietyName($addedName);
+            $ace->setType('show');
+            $ace->setEntityId($show->getId());
+            $ace->setGrantedBy($this->getUser());
+            $ace->setCreatedAt(new \DateTime());
+            $ace->setDisplayOrder(-999);
+            $em->persist($ace);
+        }
+        foreach ($removedNames as $removedName) {
+            $ace = $socACERepo->findLiveNameAce($removedName, $show);
+            $ace->setRevokedBy($this->getUser());
+            $ace->setRevokedAt(new \DateTime());
+        }
+        $em->flush();
+
+        // Finally ordering.
+        for ($i = 0; $i < count($newSocs); $i++) {
+            if ($newSocs[$i][1]) {
+                $socACERepo->findLiveAce($newSocs[$i][1]->getId(), $show)->setDisplayOrder($i);
+            } else {
+                $socACERepo->findLiveNameAce($newSocs[$i][0], $show)->setDisplayOrder($i);
+            }
+        }
     }
 
     public function deleteAction($identifier)

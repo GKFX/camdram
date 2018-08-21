@@ -3,6 +3,7 @@
 namespace Acts\CamdramSecurityBundle\DataFixtures;
 
 use Acts\CamdramSecurityBundle\Entity\AccessControlEntry;
+use Acts\CamdramSecurityBundle\Entity\SocietyAccessCE;
 use Doctrine\Common\Persistence\ObjectManager;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Doctrine\Bundle\FixturesBundle\Fixture;
@@ -25,9 +26,10 @@ class AccessControlEntryFixtures extends Fixture implements DependentFixtureInte
         $e->setType('security');
         $manager->persist($e);
 
-        //Make user2 owner of all shows
         $shows = $manager->getRepository('ActsCamdramBundle:Show')->findAll();
+        $societies = $manager->getRepository('ActsCamdramBundle:Society')->findAll();
         foreach ($shows as $show) {
+            // Make user2 owner of all shows.
             $e = new AccessControlEntry();
             $e->setUser($this->getReference('testuser2'));
             $e->setGrantedBy($this->getReference('adminuser'));
@@ -35,9 +37,19 @@ class AccessControlEntryFixtures extends Fixture implements DependentFixtureInte
             $e->setCreatedAt(new \DateTime('2001-01-01'));
             $e->setType('show');
             $manager->persist($e);
-        }
 
-        //TODO Make a random society own shows.
+            // Make random societies own random shows.
+            // This is only in the loop so it runs a resaonable number of times,
+            // it's not using $show.
+            $ace = new SocietyAccessCE();
+            $ace->setSociety($societies[array_rand($societies)]);
+            $ace->setType('show');
+            $ace->setEntityId($shows[array_rand($shows)]->getId());
+            $ace->setGrantedBy($this->getReference('testuser2'));
+            $ace->setCreatedAt(new \DateTime());
+            $ace->setDisplayOrder(0);
+            $manager->persist($ace);
+        }
 
         $manager->flush();
     }

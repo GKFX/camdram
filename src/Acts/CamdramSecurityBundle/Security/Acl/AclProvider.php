@@ -56,9 +56,26 @@ class AclProvider
         return $this->entityManager->getRepository('ActsCamdramSecurityBundle:User')->findAdmins($min_level);
     }
 
+    /**
+     * This isn't really access control at all, it's here for convenience.
+     */
+    public function getAllLinkedSocs(OwnableInterface $entity)
+    {
+        return $this->entityManager->getRepository('ActsCamdramSecurityBundle:SocietyAccessCE')->findAllLinkedSocs($entity);
+    }
+
     public function getOwningSocs(OwnableInterface $entity)
     {
         return $this->entityManager->getRepository('ActsCamdramSecurityBundle:SocietyAccessCE')->findOwningSocs($entity);
+    }
+
+    public function getOwnersOfOwningSocs(OwnableInterface $entity)
+    {
+        $users = [];
+        foreach ($this->getOwningSocs($entity) as $society) {
+            $users = array_merge($users, $this->getOwners($society));
+        }
+        return $users;
     }
 
     public function getOrganisationIdsByUser(User $user)

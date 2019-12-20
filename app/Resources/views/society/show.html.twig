@@ -40,8 +40,26 @@
    </div>
    {% endif %}
 
-   <div class="entity-body-text" itemprop="description">
-       {{ society.description | camdram_markdown }}
+    <div class="entity-body-text" itemprop="description">
+        {{ society.description | camdram_markdown }}
+
+        <div class="split-header">
+            <h4>Committee members</h4>
+            {% if is_granted('EDIT', society) %}
+                <span><button class="fa fa-pencil text-button" title="Edit committee"></button></span>
+            {% endif %}
+        </div>
+        {% for group in society.lumpedCommittee %}
+        <h5>Committee {{ (group|first).termStart | date("j F Y") }}–{{ (group|first).termEnd | date("j F Y") }}</h5>
+        <ul>
+            {%- for member in group -%}
+                <li>{{member.role}}, {{ link_entity(member.person) }}
+                    {{- (member.comment|trim) ? (', ' ~ member.comment) | detect_links }}</li>
+            {%- endfor -%}
+        </ul>
+        <br>
+        {% endfor %}
+
        {% if can_contact %}
            <p><a href="{{ path('contact_entity', {type: 'society', identifier: society.slug}) }}"><i class="fa fa-envelope-o"></i> Contact {{ society.name }}</a></p>
        {% endif %}

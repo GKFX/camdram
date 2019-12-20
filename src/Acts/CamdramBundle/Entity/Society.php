@@ -2,11 +2,13 @@
 
 namespace Acts\CamdramBundle\Entity;
 
+use Acts\CamdramApiBundle\Configuration\Annotation as Api;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Gedmo\Mapping\Annotation as Gedmo;
 use JMS\Serializer\Annotation as Serializer;
 use Symfony\Component\Validator\Constraints as Assert;
-use Acts\CamdramApiBundle\Configuration\Annotation as Api;
 
 /**
  * Society
@@ -145,6 +147,11 @@ class Society extends Organisation
      * @ORM\OneToMany(targetEntity="Application", mappedBy="society")
      */
     private $applications;
+
+    /**
+     *  @ORM\OneToMany(targetEntity="CommitteeMember", mappedBy="society")
+     */
+    private $committee;
 
     /**
      * Set short_name
@@ -415,9 +422,10 @@ class Society extends Organisation
      */
     public function __construct()
     {
-        $this->news = new \Doctrine\Common\Collections\ArrayCollection();
-        $this->applications = new \Doctrine\Common\Collections\ArrayCollection();
-        $this->shows = new \Doctrine\Common\Collections\ArrayCollection();
+        $this->news = new ArrayCollection();
+        $this->applications = new ArrayCollection();
+        $this->committee = new ArrayCollection();
+        $this->shows = new ArrayCollection();
     }
 
     /**
@@ -542,5 +550,34 @@ class Society extends Organisation
     public function getThemeColor(): ?string
     {
         return $this->theme_color;
+    }
+
+    public function getCommittee(): Collection
+    {
+        return $this->committee;
+    }
+
+    /**
+     * Return the committee "lumped" by year of office and then sorted by
+     * $member->order.
+     */
+    public function getLumpedCommittee(): array
+    {
+        $dates = $this->committee->map(function($mem) {
+            return [$mem->getTermStart(), $mem->getTermEnd()];
+        });
+        $uniqueDates = array_unique($dates->toArray(), SORT_REGULAR);
+        rsort($uniqueDates);
+        $rval = [];
+        foreach ($uniqueDates as $period) {
+            $committee = $this->committee->filter(function($mem) use ($period) {
+                return [$mem->getTermStart(), $mem->getTermEnd()] == $period;
+            })->toArray();
+            usort($committee, function ($memA, $memB) {
+                return $memA->getOrder() <=> $memB->getOrder();
+            });
+            $rval[] = $committee;
+        }
+        return $rval;
     }
 }
